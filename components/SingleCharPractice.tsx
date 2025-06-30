@@ -73,6 +73,35 @@ const SingleCharPractice: React.FC<SingleCharPracticeProps> = ({
 
   const charInfo = getCharacterInfo(character);
 
+  // Generate blank grid when no character is provided
+  const generateBlankGrid = () => {
+    const rows = [];
+    const totalRows = gridConfig.rows || 12;
+    const totalCols = gridConfig.cols || 10;
+
+    for (let row = 0; row < totalRows; row++) {
+      const rowCells = [];
+      
+      for (let col = 0; col < totalCols; col++) {
+        rowCells.push(
+          <GridCell
+            key={`${row}-${col}`}
+            type={gridConfig.type}
+            size={gridConfig.size}
+          />
+        );
+      }
+      
+      rows.push(
+        <div key={row} className="flex mb-2">
+          {rowCells}
+        </div>
+      );
+    }
+
+    return rows;
+  };
+
   // Generate a row with the same character in all cells
   const generateCharacterRow = (
     showExample: boolean,
@@ -84,7 +113,6 @@ const SingleCharPractice: React.FC<SingleCharPracticeProps> = ({
     
     for (let col = 0; col < cellsPerRow; col++) {
       const isExample = showExample && col === 0; // First cell shows darker example
-      const isTracing = showTracing && col > 0; // Rest show lighter tracing
       
       rowCells.push(
         <GridCell
@@ -93,11 +121,12 @@ const SingleCharPractice: React.FC<SingleCharPracticeProps> = ({
           size={gridConfig.size}
           className={isExample ? 'border-2 border-red-300 bg-red-50' : ''}
         >
-          {(isExample || isTracing) && (
+          {/* Only show character in example cell (first cell), rest are blank */}
+          {isExample && (
             <PracticeText
               text={character}
               font={textConfig.font}
-              opacity={isExample ? 'dark' : textConfig.opacity}
+              opacity="dark"
               size={textConfig.size}
             />
           )}
@@ -106,7 +135,7 @@ const SingleCharPractice: React.FC<SingleCharPracticeProps> = ({
     }
     
     return (
-      <div key={key} className="flex gap-1 mb-2">
+      <div key={key} className="flex mb-2">
         {rowCells}
       </div>
     );
@@ -123,10 +152,9 @@ const SingleCharPractice: React.FC<SingleCharPracticeProps> = ({
     
     for (let row = 0; row < rows; row++) {
       const isExample = showExample && row === 0;
-      const isTracing = showTracing && row < 2; // First two rows for tracing
       
       rowElements.push(
-        generateCharacterRow(isExample, isTracing, `${sectionTitle}-${row}`)
+        generateCharacterRow(isExample, false, `${sectionTitle}-${row}`)
       );
     }
 
@@ -148,22 +176,30 @@ const SingleCharPractice: React.FC<SingleCharPracticeProps> = ({
         <div className="header mb-6 text-center border-b pb-4">
           <h1 className="text-2xl font-bold mb-2">{title}</h1>
           <div className="text-sm text-gray-600 flex justify-between mb-2">
-            <span>练习汉字: {character}</span>
-            <span>拼音: {charInfo.pinyin}</span>
-            <span>姓名: ___________</span>
+            <span>练习汉字: {character || '空白练习'}</span>
+            <span>拼音: {charInfo.pinyin || ''}</span>
+            <span></span>
           </div>
           <div className="text-sm text-gray-600 flex justify-between">
+            <span>姓名: ___________</span>
             <span>练习日期: ___________</span>
-            <span>完成时间: ___________</span>
-            <span>老师评分: ___________</span>
+            <span>签名: ___________</span>
           </div>
         </div>
       )}
       
       {/* Practice sections */}
-      {generatePracticeSection('描红练习', true, true, 3)}
-      {generatePracticeSection('临摹练习', true, false, 3)}
-      {generatePracticeSection('默写练习', false, false, 4)}
+      {!character || character.trim() === '' ? (
+        <div className="practice-section">
+          {generateBlankGrid()}
+        </div>
+      ) : (
+        <>
+          {generatePracticeSection('描红练习', true, false, 3)}
+          {generatePracticeSection('临摹练习', true, false, 3)}
+          {generatePracticeSection('默写练习', false, false, 4)}
+        </>
+      )}
     </div>
   );
 };

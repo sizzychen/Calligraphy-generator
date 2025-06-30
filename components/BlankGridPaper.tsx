@@ -65,12 +65,12 @@ const BlankGridPaper: React.FC<BlankGridPaperProps> = ({
           <div className="text-sm text-gray-600 flex justify-between mb-2">
             <span>格子类型: {getGridTypeName()}</span>
             <span>规格: {gridConfig.rows} × {gridConfig.cols}</span>
-            <span>姓名: ___________</span>
+            <span></span>
           </div>
           <div className="text-sm text-gray-600 flex justify-between">
+            <span>姓名: ___________</span>
             <span>练习日期: ___________</span>
-            <span>完成时间: ___________</span>
-            <span>评分: ___________</span>
+            <span>签名: ___________</span>
           </div>
         </div>
       )}

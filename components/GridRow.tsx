@@ -19,7 +19,7 @@ const GridRow: React.FC<GridRowProps> = ({
   className = ''
 }) => {
   return (
-    <div className={`flex gap-1 mb-1 ${className}`}>
+    <div className={`flex mb-1 ${className}`}>
       {Array.from({ length: gridConfig.cols }, (_, index) => {
         const char = characters[index] || '';
         return (

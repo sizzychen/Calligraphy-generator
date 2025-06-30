@@ -39,6 +39,8 @@ const PracticeSheetPreview: React.FC<PracticeSheetPreviewProps> = ({
           <StrokeOrderPractice
             {...commonProps}
             characters={config.text.content}
+            title="带笔顺练习字帖"
+            includeHeader={true}
           />
         );
 
