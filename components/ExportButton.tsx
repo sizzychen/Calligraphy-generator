@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AdvancedPDFExporter } from '@/utils/advancedPdfExport';
-import { PracticeMode } from '@/types';
+import { ImageExporter } from '@/utils/imageExport';
+import { PracticeMode, ExportType } from '@/types';
 
 interface ExportButtonProps {
   elementId: string;
@@ -21,6 +22,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const getPracticeTypeName = (type: PracticeMode): string => {
     const names = {
@@ -33,11 +36,26 @@ const ExportButton: React.FC<ExportButtonProps> = ({
     return names[type] || '练习字帖';
   };
 
-  const handleExport = async () => {
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleExport = async (exportType: ExportType) => {
     if (disabled || isExporting) return;
 
     setIsExporting(true);
     setExportStatus('idle');
+    setShowDropdown(false);
 
     try {
       const element = document.getElementById(elementId);
@@ -45,13 +63,20 @@ const ExportButton: React.FC<ExportButtonProps> = ({
         throw new Error('找不到要导出的元素');
       }
 
-      const filename = `${getPracticeTypeName(practiceType)}_${title || ''}.pdf`.replace(/\s+/g, '_');
+      const baseFilename = `${getPracticeTypeName(practiceType)}_${title || ''}`.replace(/\s+/g, '_');
       
-      await AdvancedPDFExporter.exportElementToPDF(element, {
-        filename,
-        orientation: 'portrait',
-        format: 'A4'
-      });
+      if (exportType === 'pdf') {
+        await AdvancedPDFExporter.exportElementToPDF(element, {
+          filename: `${baseFilename}.pdf`,
+          orientation: 'portrait',
+          format: 'A4',
+          quality: 0.95
+        });
+      } else if (exportType === 'png') {
+        await ImageExporter.exportToPNG(element, baseFilename);
+      } else if (exportType === 'jpeg') {
+        await ImageExporter.exportToJPEG(element, baseFilename);
+      }
       
       setExportStatus('success');
       
@@ -72,16 +97,22 @@ const ExportButton: React.FC<ExportButtonProps> = ({
     }
   };
 
+  const exportOptions = [
+    { type: 'pdf' as ExportType, label: 'PDF文件', icon: '📄' },
+    { type: 'png' as ExportType, label: 'PNG图片', icon: '🖼️' },
+    { type: 'jpeg' as ExportType, label: 'JPEG图片', icon: '📷' },
+  ];
+
   const getButtonText = () => {
     if (isExporting) return '导出中...';
     if (exportStatus === 'success') return '导出成功！';
     if (exportStatus === 'error') return '导出失败';
-    return '导出PDF';
+    return '导出';
   };
 
   const getButtonClass = () => {
     let baseClass = `
-      px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2
+      relative flex items-center justify-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all duration-200
       ${className}
     `;
 
@@ -159,15 +190,75 @@ const ExportButton: React.FC<ExportButtonProps> = ({
   };
 
   return (
-    <button
-      onClick={handleExport}
-      disabled={disabled || isExporting}
-      className={getButtonClass()}
-      title={disabled ? '请先配置练习内容' : '导出为PDF文件'}
-    >
-      {getIcon()}
-      <span>{getButtonText()}</span>
-    </button>
+    <div className="relative" ref={dropdownRef}>
+      <div className="flex">
+        {/* Main export button */}
+        <button
+          onClick={() => handleExport('pdf')}
+          disabled={disabled || isExporting}
+          className={`${getButtonClass()} rounded-r-none`}
+        >
+          {getIcon()}
+          <span>{getButtonText()}</span>
+        </button>
+
+        {/* Dropdown toggle button */}
+        <button
+          onClick={() => setShowDropdown(!showDropdown)}
+          disabled={disabled || isExporting}
+          className={`
+            px-2 py-3 border-l border-blue-500 rounded-r-lg font-medium transition-all duration-200
+            ${disabled || isExporting 
+              ? 'bg-gray-400 text-white cursor-not-allowed' 
+              : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
+            }
+          `}
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {/* Dropdown menu */}
+      {showDropdown && (
+        <div className="absolute top-full right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+          <div className="py-1">
+            {exportOptions.map((option, index) => (
+              <button
+                key={option.type}
+                onClick={() => handleExport(option.type)}
+                disabled={isExporting}
+                className={`
+                  flex items-center space-x-3 w-full px-4 py-3 text-left text-sm transition-colors duration-150
+                  ${isExporting 
+                    ? 'text-gray-400 cursor-not-allowed' 
+                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                  }
+                  ${index === 0 ? 'rounded-t-xl' : ''}
+                  ${index === exportOptions.length - 1 ? 'rounded-b-xl' : ''}
+                `}
+              >
+                <span className="text-xl">{option.icon}</span>
+                <div className="flex flex-col">
+                  <span className="font-medium">{option.label}</span>
+                  <span className="text-xs text-gray-500">
+                    {option.type === 'pdf' && '适合打印的矢量格式'}
+                    {option.type === 'png' && '高质量透明背景图片'}
+                    {option.type === 'jpeg' && '适合分享的压缩图片'}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

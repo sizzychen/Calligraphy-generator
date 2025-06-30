@@ -99,6 +99,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     { value: 'english', label: '隶书' },
   ];
 
+  const englishFontOptions = [
+    { value: 'english', label: 'Arial' },
+    { value: 'english-serif', label: 'Times New Roman' },
+    { value: 'english-mono', label: 'Courier New' },
+    { value: 'english-hand', label: 'Comic Sans MS' },
+  ];
+
+  const getCurrentFontOptions = () => {
+    return config.mode === 'english' ? englishFontOptions : fontOptions;
+  };
+
   return (
     <div className={`settings-panel bg-white rounded-lg shadow-lg p-6 ${className}`}>
       <h2 className="text-lg font-bold mb-4 text-gray-800">字帖设置</h2>
@@ -135,43 +146,47 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </select>
       </div>
 
-      {/* Grid Type Selection */}
-      <div className="setting-group mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          格子类型
-        </label>
-        <select
-          value={config.grid.type}
-          onChange={(e) => updateGridConfig('type', e.target.value as GridType)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-        >
-          {gridOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Columns Setting */}
-      <div className="setting-group mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          每行格子数: {config.grid.cols}
-        </label>
-        <input
-          type="range"
-          min="6"
-          max="16"
-          step="1"
-          value={config.grid.cols}
-          onChange={(e) => handleColsChange(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-        />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>6</span>
-          <span>16</span>
+      {/* Grid Type Selection - Hidden for English mode */}
+      {config.mode !== 'english' && (
+        <div className="setting-group mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            格子类型
+          </label>
+          <select
+            value={config.grid.type}
+            onChange={(e) => updateGridConfig('type', e.target.value as GridType)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          >
+            {gridOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
-      </div>
+      )}
+
+      {/* Columns Setting - Hidden for English mode */}
+      {config.mode !== 'english' && (
+        <div className="setting-group mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            每行格子数: {config.grid.cols}
+          </label>
+          <input
+            type="range"
+            min="6"
+            max="16"
+            step="1"
+            value={config.grid.cols}
+            onChange={(e) => handleColsChange(Number(e.target.value))}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>6</span>
+            <span>16</span>
+          </div>
+        </div>
+      )}
 
       {/* Font Selection */}
       <div className="setting-group mb-4">
@@ -183,7 +198,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           onChange={(e) => updateTextConfig('font', e.target.value as FontType)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
         >
-          {fontOptions.map((option) => (
+          {getCurrentFontOptions().map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

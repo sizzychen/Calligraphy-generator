@@ -32,28 +32,84 @@ const EnglishPractice: React.FC<EnglishPracticeProps> = ({
   };
 
   const englishWords = processEnglishContent(content);
-  
-  // Alphabet practice
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-  const lowercaseAlphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+
+  // Calculate optimal rows and grid height based on font size and page size
+  const calculateGridDimensions = () => {
+    // Base grid height should adapt to font size
+    // For English text, we need more height to accommodate ascenders and descenders
+    const baseGridHeight = Math.max(textConfig.size * 2.8, 100); // Increased multiplier and minimum height
+    
+    // Calculate available space for content (excluding header and footer)
+    const pageHeight = 1123; // A4 height in pixels at 96 DPI (210mm)
+    const headerHeight = includeHeader ? 120 : 0;
+    const footerHeight = 60;
+    const margins = 80; // Top and bottom margins
+    const availableHeight = pageHeight - headerHeight - footerHeight - margins;
+    
+    // Calculate number of rows that can fit
+    const rowSpacing = 8; // mb-2 class spacing
+    const optimalRows = Math.floor(availableHeight / (baseGridHeight + rowSpacing));
+    
+    return {
+      gridHeight: baseGridHeight,
+      rows: Math.max(optimalRows, 6), // Minimum 6 rows (reduced due to larger height)
+      cols: gridConfig.cols || 10
+    };
+  };
+
+  const { gridHeight, rows: calculatedRows, cols: calculatedCols } = calculateGridDimensions();
+
+  // Generate empty four-line practice rows when no content
+  const generateEmptyFourLinePractice = () => {
+    const rows = [];
+
+    for (let row = 0; row < calculatedRows; row++) {
+      const rowCells = [];
+      
+      for (let col = 0; col < calculatedCols; col++) {
+        rowCells.push(
+          <GridCell
+            key={`${row}-${col}`}
+            type="four-line"
+            size={gridConfig.size}
+            gridHeight={gridHeight}
+          />
+        );
+      }
+      
+      rows.push(
+        <div key={row} className="flex mb-2">
+          {rowCells}
+        </div>
+      );
+    }
+
+    return rows;
+  };
 
   // Generate four-line practice rows
   const generateFourLinePractice = (items: string[], showExample: boolean = false) => {
     const rows = [];
     let itemIndex = 0;
 
-    for (let row = 0; row < Math.min(gridConfig.rows, Math.ceil(items.length / gridConfig.cols)); row++) {
+    // Calculate how many rows we need based on content and available space
+    const contentRows = Math.min(calculatedRows, Math.ceil(items.length / calculatedCols));
+    // Fill remaining space with empty rows if needed
+    const totalRowsToRender = calculatedRows;
+
+    for (let row = 0; row < totalRowsToRender; row++) {
       const rowItems = [];
       
-      for (let col = 0; col < gridConfig.cols && itemIndex < items.length; col++) {
-        const item = items[itemIndex];
-        const isExample = showExample && col === 0;
+      for (let col = 0; col < calculatedCols; col++) {
+        const item = row < contentRows && itemIndex < items.length ? items[itemIndex] : null;
+        const isExample = showExample && col === 0 && item;
         
         rowItems.push(
           <GridCell
             key={`${row}-${col}`}
             type="four-line"
             size={gridConfig.size}
+            gridHeight={gridHeight}
             className={isExample ? 'border-2 border-green-300 bg-green-50' : ''}
           >
             {item && (
@@ -61,7 +117,7 @@ const EnglishPractice: React.FC<EnglishPracticeProps> = ({
                 text={item}
                 font="english"
                 opacity={isExample ? 'dark' : textConfig.opacity}
-                size={Math.floor(textConfig.size * 0.7)}
+                size={Math.floor(textConfig.size * 0.8)} // Increased from 0.7 to 0.8
               />
             )}
           </GridCell>
@@ -71,7 +127,7 @@ const EnglishPractice: React.FC<EnglishPracticeProps> = ({
       }
       
       rows.push(
-        <div key={row} className="flex gap-1 mb-2">
+        <div key={row} className="flex mb-2">
           {rowItems}
         </div>
       );
@@ -84,8 +140,8 @@ const EnglishPractice: React.FC<EnglishPracticeProps> = ({
   const generateLetterPractice = (letters: string[], showExample: boolean = false) => {
     const rows = [];
     
-    for (let i = 0; i < letters.length; i += gridConfig.cols) {
-      const rowLetters = letters.slice(i, i + gridConfig.cols);
+    for (let i = 0; i < letters.length; i += calculatedCols) {
+      const rowLetters = letters.slice(i, i + calculatedCols);
       const rowCells = [];
       
       rowLetters.forEach((letter, index) => {
@@ -96,6 +152,7 @@ const EnglishPractice: React.FC<EnglishPracticeProps> = ({
             key={`${i + index}`}
             type="four-line"
             size={gridConfig.size}
+            gridHeight={gridHeight}
             className={isExample ? 'border-2 border-purple-300 bg-purple-50' : ''}
           >
             <PracticeText
@@ -109,18 +166,19 @@ const EnglishPractice: React.FC<EnglishPracticeProps> = ({
       });
       
       // Fill remaining cells in row
-      while (rowCells.length < gridConfig.cols) {
+      while (rowCells.length < calculatedCols) {
         rowCells.push(
           <GridCell
             key={`empty-${i}-${rowCells.length}`}
             type="four-line"
             size={gridConfig.size}
+            gridHeight={gridHeight}
           />
         );
       }
       
       rows.push(
-        <div key={i} className="flex gap-1 mb-2">
+        <div key={i} className="flex mb-2">
           {rowCells}
         </div>
       );
@@ -135,109 +193,35 @@ const EnglishPractice: React.FC<EnglishPracticeProps> = ({
         <div className="header mb-6 text-center border-b pb-4">
           <h1 className="text-2xl font-bold mb-2">{title}</h1>
           <div className="text-sm text-gray-600 flex justify-between">
-            <span>English Writing Practice</span>
-            <span>Four-Line Grid</span>
             <span>Name: ___________</span>
+            <span>Date: ___________</span>
+            <span>Signature: ___________</span>
           </div>
         </div>
       )}
 
-      {/* Instructions */}
-      <div className="instructions mb-6 p-4 bg-green-50 rounded-lg">
-        <h3 className="font-semibold mb-2">Practice Instructions:</h3>
-        <ol className="text-sm text-gray-700 list-decimal list-inside space-y-1">
-          <li>Follow proper letter formation and positioning</li>
-          <li>Keep letters within the four-line boundaries</li>
-          <li>Maintain consistent letter size and spacing</li>
-          <li>Practice both uppercase and lowercase letters</li>
-        </ol>
-      </div>
-
-      {/* Four-line guide */}
-      <div className="line-guide mb-6 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-semibold mb-3">Four-Line Guide:</h3>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <div className="font-medium mb-2">Letter positioning:</div>
-            <ul className="space-y-1 text-gray-700">
-              <li>• Top line: tall letters (b, d, f, h, k, l, t)</li>
-              <li>• Middle area: most letters (a, c, e, i, m, n, o, r, s, u, v, w, x, z)</li>
-              <li>• Bottom line: descending letters (g, j, p, q, y)</li>
-            </ul>
-          </div>
-          <div>
-            <div className="font-medium mb-2">Uppercase letters:</div>
-            <ul className="space-y-1 text-gray-700">
-              <li>• Use the space between top and middle lines</li>
-              <li>• Keep consistent height and width</li>
-              <li>• Leave proper spacing between letters</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
       {/* Practice sections */}
       <div className="practice-sections">
-        {/* Uppercase alphabet */}
-        <div className="practice-section mb-8">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">
-            Uppercase Letters (A-Z)
-          </h3>
-          {generateLetterPractice(alphabet, true)}
-        </div>
-
-        {/* Lowercase alphabet */}
-        <div className="practice-section mb-8">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">
-            Lowercase Letters (a-z)
-          </h3>
-          {generateLetterPractice(lowercaseAlphabet, true)}
-        </div>
-
-        {/* Word practice */}
-        {englishWords.length > 0 && (
+        {/* Show empty grids when no content, otherwise show word practice */}
+        {englishWords.length === 0 ? (
+          <div className="practice-section">
+            {generateEmptyFourLinePractice()}
+          </div>
+        ) : (
           <div className="practice-section mb-8">
             <h3 className="text-lg font-semibold mb-4 text-gray-700">
               Word Practice
             </h3>
-            {generateFourLinePractice(englishWords, true)}
+            {generateFourLinePractice(englishWords, false)}
           </div>
         )}
-      </div>
-
-      {/* Common word patterns */}
-      <div className="word-patterns mt-8 p-4 bg-yellow-50 rounded-lg">
-        <h3 className="font-semibold mb-4">Common Word Patterns:</h3>
-        <div className="grid grid-cols-3 gap-4 text-sm">
-          <div>
-            <div className="font-medium mb-2">CVC Pattern:</div>
-            <div className="space-y-1">
-              <div>cat, dog, run, sit</div>
-              <div>big, red, top, fun</div>
-            </div>
-          </div>
-          <div>
-            <div className="font-medium mb-2">Long Vowels:</div>
-            <div className="space-y-1">
-              <div>cake, bike, home</div>
-              <div>cute, game, time</div>
-            </div>
-          </div>
-          <div>
-            <div className="font-medium mb-2">Blends:</div>
-            <div className="space-y-1">
-              <div>stop, tree, frog</div>
-              <div>play, swim, craft</div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="footer mt-6 text-center text-xs text-gray-500 border-t pt-4">
         <div className="flex justify-between">
           <span>Practice Date: ___________</span>
           <span>Completion Time: ___________</span>
-          <span>Grade: ___________</span>
+          <span>Signature: ___________</span>
         </div>
       </div>
     </div>

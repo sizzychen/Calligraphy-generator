@@ -29,7 +29,13 @@ const PracticeText: React.FC<PracticeTextProps> = ({
       case 'stroke-order':
         return 'font-stroke-order';
       case 'english':
-        return 'font-sans';
+        return 'font-english';
+      case 'english-serif':
+        return 'font-english-serif';
+      case 'english-mono':
+        return 'font-english-mono';
+      case 'english-hand':
+        return 'font-english-hand';
       default:
         return 'font-chinese-regular';
     }

@@ -34,6 +34,27 @@ body {
   font-family: 'STXingkai', 'KaiTi', serif;
 }
 
+/* English fonts */
+.font-english {
+  font-family: Arial, sans-serif;
+  font-weight: 400;
+}
+
+.font-english-serif {
+  font-family: 'Times New Roman', serif;
+  font-weight: 400;
+}
+
+.font-english-mono {
+  font-family: 'Courier New', monospace;
+  font-weight: 400;
+}
+
+.font-english-hand {
+  font-family: 'Comic Sans MS', cursive;
+  font-weight: 400;
+}
+
 /* Grid styles */
 .grid-cell {
   position: relative;
@@ -126,9 +147,26 @@ body {
 .four-line-grid {
   border-top: 2px solid #333;
   border-bottom: 2px solid #333;
+  border-right: 1px solid #ddd;
   position: relative;
-  height: 120px;
   aspect-ratio: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.four-line-grid:first-child {
+  border-left: 1px solid #ddd;
+}
+
+/* Remove vertical lines for English practice */
+.english-practice .four-line-grid {
+  border-left: none;
+  border-right: none;
+}
+
+.english-practice .four-line-grid:first-child {
+  border-left: none;
 }
 
 .four-line-grid::before {
@@ -163,6 +201,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
+}
+
+/* English practice text specific positioning */
+.english-practice .practice-text {
+  align-items: center;
+  line-height: 0.8;
 }
 
 .practice-text-light {

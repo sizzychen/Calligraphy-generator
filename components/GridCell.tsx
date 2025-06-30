@@ -8,9 +8,10 @@ interface GridCellProps {
   size: number;
   children?: React.ReactNode;
   className?: string;
+  gridHeight?: number; // Optional height for four-line grids
 }
 
-const GridCell: React.FC<GridCellProps> = ({ type, size, children, className = '' }) => {
+const GridCell: React.FC<GridCellProps> = ({ type, size, children, className = '', gridHeight }) => {
   const getGridClass = () => {
     switch (type) {
       case 'tian-zi':
@@ -27,9 +28,9 @@ const GridCell: React.FC<GridCellProps> = ({ type, size, children, className = '
 
   const cellStyle = {
     width: `${size}px`,
-    height: type === 'four-line' ? '120px' : `${size}px`,
+    height: type === 'four-line' ? `${gridHeight || 80}px` : `${size}px`,
     minWidth: `${size}px`,
-    minHeight: type === 'four-line' ? '120px' : `${size}px`,
+    minHeight: type === 'four-line' ? `${gridHeight || 80}px` : `${size}px`,
   };
 
   return (

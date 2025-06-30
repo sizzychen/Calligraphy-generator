@@ -60,23 +60,10 @@ const ArticlePractice: React.FC<ArticlePracticeProps> = ({
         {includeHeader && pageIndex === 0 && (
           <div className="header mb-6 text-center border-b pb-4">
             <h1 className="text-2xl font-bold mb-2">{title}</h1>
-            <div className="text-sm text-gray-600 flex justify-between mb-2">
-              <span>{totalChars > 0 ? '文章练习' : '空白格子纸'}</span>
-              {totalChars > 0 && <span>共 {totalChars} 字 / {totalPages} 页</span>}
-              <span>姓名: ___________</span>
-            </div>
             <div className="text-sm text-gray-600 flex justify-between">
+              <span>姓名: ___________</span>
               <span>练习日期: ___________</span>
-              <span>完成时间: ___________</span>
-              <span></span>
-            </div>
-          </div>
-        )}
-        
-        {totalChars > 0 && (
-          <div className="page-header mb-4">
-            <div className="text-sm text-gray-600 flex justify-end">
-              <span>第 {pageIndex * charsPerPage + 1}-{Math.min((pageIndex + 1) * charsPerPage, totalChars)} 字</span>
+              <span>签名: ___________</span>
             </div>
           </div>
         )}

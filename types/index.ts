@@ -13,7 +13,10 @@ export type FontType =
   | 'chinese-regular'      // 常规中文字体
   | 'chinese-calligraphy'  // 书法字体
   | 'stroke-order'         // 笔顺字体
-  | 'english';             // 英文字体
+  | 'english'              // 英文字体 Arial
+  | 'english-serif'        // 英文衬线字体 Times New Roman
+  | 'english-mono'         // 英文等宽字体 Courier New
+  | 'english-hand';        // 英文手写字体 Comic Sans MS
 
 // Text opacity levels
 export type TextOpacity = 'light' | 'medium' | 'dark';
@@ -67,6 +70,17 @@ export interface PDFExportOptions {
   orientation: 'portrait' | 'landscape';
 }
 
+// Image export options
+export interface ImageExportOptions {
+  filename: string;
+  format?: 'png' | 'jpeg';
+  quality?: number;    // 0.1 to 1.0
+  scale?: number;      // 1-3 for different quality levels
+}
+
+// Export type
+export type ExportType = 'pdf' | 'png' | 'jpeg';
+
 // Component props
 export interface GridCellProps {
   type: GridType;
@@ -106,7 +120,10 @@ export const FONT_OPTIONS: { value: FontType; label: string; preview: string }[]
   { value: 'chinese-regular', label: '常规字体', preview: '汉字练习' },
   { value: 'chinese-calligraphy', label: '书法字体', preview: '汉字练习' },
   { value: 'stroke-order', label: '笔顺字体', preview: '汉字练习' },
-  { value: 'english', label: '英文字体', preview: 'English' },
+  { value: 'english', label: '英文字体 (Arial)', preview: 'English' },
+  { value: 'english-serif', label: '英文衬线 (Times)', preview: 'English' },
+  { value: 'english-mono', label: '英文等宽 (Courier)', preview: 'English' },
+  { value: 'english-hand', label: '英文手写 (Comic Sans)', preview: 'English' },
 ];
 
 // Available grid types
